@@ -84,14 +84,16 @@ def view_data() -> None:
     ]
 
     view_games = ranked_games.groupby(state.group_columns)[state.data_columns].agg(state.agg_func).reset_index()
-    round_count = ranked_games.groupby(state.group_columns)['name'].count().rename('rounds_played').reset_index()
+    round_count = ranked_games.groupby(
+        state.group_columns)['name'].count().squeeze().astype(int).rename('rounds_played').reset_index()
     view_games = pd.concat([view_games, round_count['rounds_played']], axis=1)
     view_games = round(view_games, 2)
 
     st.slider(
         label='Min Rounds Played',
-        min_value=view_games.rounds_played.min(),
-        max_value=view_games.rounds_played.max(),
+        value=int(view_games["rounds_played"].min()),
+        min_value=int(view_games["rounds_played"].min()),
+        max_value=int(view_games["rounds_played"].max()),
         step=1,
         key='rounds_min'
     )
@@ -103,12 +105,14 @@ def view_data() -> None:
             view_games,
             use_container_width=True
         )
-
     else:
-        st.dataframe(
-            view_games.set_index('name').loc[state.players].reset_index(),
-            use_container_width=True
-        )
+        try:
+            st.dataframe(
+                view_games.set_index('name').loc[state.players].reset_index(),
+                use_container_width=True
+            )
+        except KeyError:
+            st.text("no datapoints meet the filter requirements")
 
 
 if __name__ == '__main__':
