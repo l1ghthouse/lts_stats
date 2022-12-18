@@ -56,3 +56,15 @@ def player_names(games: pd.DataFrame) -> dict:
     user_id_dict = user_id_frame.set_index('uid').squeeze().to_dict()
 
     return user_id_dict
+
+
+def get_game_type(games: pd.DataFrame) -> pd.DataFrame:
+    """
+    calculate the team size for a specific round and add it as a column
+    :param games:
+    :return:
+    """
+    team_size = games.groupby(['matchID', 'round', 'team'])['name'].count()
+    team_size = team_size.rename('team_size').reset_index(level=[1, 2])['team_size']
+
+    return pd.merge(games, team_size, left_index=True, right_index=True).reset_index()
