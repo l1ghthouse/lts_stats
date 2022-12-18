@@ -48,7 +48,9 @@ def player_names(games: pd.DataFrame) -> dict:
             'matchTimestamp': 'last_seen'
         }
     ).set_index(['uid', 'name'])
-    user_id_frame = user_id_frame.loc[user_id_frame.groupby(level=0)['last_seen'].apply(lambda x: x == x.max())]
+    user_id_frame = user_id_frame.loc[
+        user_id_frame.groupby(level=0, group_keys=False)['last_seen'].apply(lambda x: x == x.max())
+    ]
 
     user_id_frame = user_id_frame.reset_index()[['uid', 'name']]
     user_id_dict = user_id_frame.set_index('uid').squeeze().to_dict()

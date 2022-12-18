@@ -83,10 +83,10 @@ def view_data() -> None:
         (ranked_games['matchTimestamp'] < state.end_date.strftime("%Y-%m-%d"))
     ]
 
-    view_games = ranked_games.groupby(state.group_columns)[state.data_columns].agg(state.agg_func).reset_index()
+    view_games = ranked_games.groupby(state.group_columns)[state.data_columns].agg(state.agg_func)
     round_count = ranked_games.groupby(
-        state.group_columns)['name'].count().squeeze().astype(int).rename('rounds_played').reset_index()
-    view_games = pd.concat([view_games, round_count['rounds_played']], axis=1)
+        state.group_columns)['name'].count().squeeze().astype(int).rename('rounds_played')
+    view_games = pd.concat([view_games, round_count], axis=1)
     view_games = round(view_games, 2)
 
     st.slider(
@@ -97,8 +97,12 @@ def view_data() -> None:
         step=1,
         key='rounds_min'
     )
-
+    win_loss = ranked_games.groupby(
+        state.group_columns)['result'].value_counts().loc[None:, 'Win'].rename('win_loss')
+    win_loss = round(win_loss.div(view_games['rounds_played']), 2).rename('win_loss')
+    view_games = pd.concat([view_games, win_loss.fillna(0.0)], axis=1)
     view_games = view_games[view_games['rounds_played'] > state.rounds_min]
+    view_games = view_games.reset_index()
 
     if not state.players:
         st.dataframe(
