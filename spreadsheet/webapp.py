@@ -91,8 +91,8 @@ def view_data() -> None:
 
     st.slider(
         label='Min Rounds Played',
-        value=int(view_games["rounds_played"].min()),
-        min_value=int(view_games["rounds_played"].min()),
+        value=0,
+        min_value=0,
         max_value=int(view_games["rounds_played"].max()),
         step=1,
         key='rounds_min'
