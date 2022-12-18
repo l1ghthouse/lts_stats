@@ -49,19 +49,20 @@ def preprocess(games: pd.DataFrame) -> pd.DataFrame:
     :param games:   all data stored in the mongo database
     :return:        the list of games that should be used for ranking
     """
-    ranked_games: pd.DataFrame = games[
-        games['ranked'] &
-        games['rebalance'] &
-        ~games['perfectKits'] &
-        ~games['isPreRelease'].replace(np.nan, True)
-    ].copy()
+    #ranked_games: pd.DataFrame = games[
+    #    games['ranked'] &
+    #    games['rebalance'] &
+    #    ~games['perfectKits'] &
+    #    ~games['isPreRelease'].replace(np.nan, True)
+    #].copy()
 
-    has_even_teams = remove_uneven_teams(games=ranked_games)
-    has_damage = remove_no_damage_rounds(games=ranked_games)
-    has_highlander = remove_non_highlander(games=ranked_games)
+    #has_even_teams = remove_uneven_teams(games=ranked_games)
+    #has_damage = remove_no_damage_rounds(games=ranked_games)
+    #has_highlander = remove_non_highlander(games=ranked_games)
 
-    ranked_games.set_index('matchID', inplace=True)
-    ranked_games = ranked_games.loc[has_even_teams.intersection(has_damage).intersection(has_highlander)]
+    #ranked_games.set_index('matchID', inplace=True)
+    #ranked_games = ranked_games.loc[has_even_teams.intersection(has_damage).intersection(has_highlander)]
+    ranked_games = games.copy()
 
     recent_names = player_names(games=ranked_games)
     ranked_games['name'] = ranked_games['uid'].replace(recent_names)

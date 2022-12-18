@@ -97,9 +97,11 @@ def view_data() -> None:
         step=1,
         key='rounds_min'
     )
-    win_loss = ranked_games.groupby(
-        state.group_columns)['result'].value_counts().loc[None:, 'Win'].rename('win_loss')
-    win_loss = round(win_loss.div(view_games['rounds_played']), 2).rename('win_loss')
+
+    wins = ranked_games.groupby(state.group_columns)['result'].value_counts().loc[
+        ranked_games.groupby(
+            state.group_columns)['result'].value_counts().index.get_level_values(-1) == 'Win'].droplevel(-1)
+    win_loss = round(wins.div(view_games['rounds_played']), 2).rename('win_loss')
     view_games = pd.concat([view_games, win_loss.fillna(0.0)], axis=1)
     view_games = view_games[view_games['rounds_played'] > state.rounds_min]
     view_games = view_games.reset_index()
