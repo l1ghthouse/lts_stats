@@ -101,7 +101,7 @@ def view_data() -> None:
 
     view_games = ranked_games.groupby(state.group_columns)[state.data_columns].agg(state.agg_func)
     round_count = ranked_games.groupby(
-        state.group_columns)["name"].count().squeeze().astype(int).rename("rounds_played")
+        state.group_columns).count()["team_size"].squeeze().astype(int).rename("rounds_played")
     view_games = pd.concat([view_games, round_count], axis=1)
     view_games = round(view_games, 2)
 

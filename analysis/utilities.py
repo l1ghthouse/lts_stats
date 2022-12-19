@@ -65,6 +65,11 @@ def get_game_type(games: pd.DataFrame) -> pd.DataFrame:
     :return:
     """
     team_size = games.groupby(['matchID', 'round', 'team'])['name'].count()
-    team_size = team_size.rename('team_size').reset_index(level=[1, 2])['team_size']
+    team_size = team_size.rename('team_size').reset_index()
 
-    return pd.merge(games, team_size, left_index=True, right_index=True).reset_index()
+    return pd.merge(
+        games,
+        team_size,
+        left_on=['matchID', 'round', 'team'],
+        right_on=['matchID', 'round', 'team']
+    )
