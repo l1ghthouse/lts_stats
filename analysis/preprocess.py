@@ -62,7 +62,6 @@ def preprocess(games: pd.DataFrame) -> pd.DataFrame:
 
     ranked_games.set_index('matchID', inplace=True)
     ranked_games = ranked_games.loc[has_even_teams.intersection(has_damage).intersection(has_highlander)]
-    ranked_games = games.copy().set_index('matchID')
 
     recent_names = player_names(games=ranked_games)
     ranked_games['name'] = ranked_games['uid'].replace(recent_names)
