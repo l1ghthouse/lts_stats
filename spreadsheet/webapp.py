@@ -2,6 +2,7 @@ import datetime
 import pandas as pd
 from streamlit import session_state as state
 import streamlit as st
+from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode, ColumnsAutoSizeMode
 
 from database.mongo import load_database
 from analysis.preprocess import preprocess
@@ -80,11 +81,6 @@ def view_data() -> None:
         help="sum = all values added together, mean = average per round, std = consistency (high = inconsistent)"
              "max = the maximum value achieved, min = the minimum value achieved"
     )
-    st.multiselect(
-        label="View Players (Optional)",
-        options=sorted(ranked_games.name.unique()),
-        key="players"
-    )
 
     if not state.group_columns or not state.data_columns:
         st.stop()
@@ -122,20 +118,10 @@ def view_data() -> None:
     view_games = view_games[view_games["rounds_played"] > state.rounds_min]
     view_games = view_games.reset_index()
 
-    if not state.players:
-        st.dataframe(
-            view_games,
-            use_container_width=True
-        )
-    else:
-        try:
-            st.dataframe(
-                view_games.set_index("name").loc[state.players].reset_index(),
-                use_container_width=True
-            )
-        except KeyError:
-            st.text("no datapoints meet the filter requirements")
-            st.text("if you want to filter on player name, make sure to include 'name' in Group Columns")
+    AgGrid(
+        view_games,
+        columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW
+    )
 
 
 if __name__ == "__main__":

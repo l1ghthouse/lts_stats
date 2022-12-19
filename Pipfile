@@ -9,6 +9,7 @@ pymongo = "*"
 tqdm = "*"
 jupyter = "*"
 pandas = "==1.4.2"
+streamlit-aggrid = "*"
 
 [dev-packages]
 
