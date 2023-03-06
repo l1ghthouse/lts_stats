@@ -17,19 +17,6 @@ def remove_uneven_teams(games: pd.DataFrame) -> pd.Index:
     return valid_games
 
 
-def remove_no_damage_rounds(games: pd.DataFrame) -> pd.Index:
-    """
-    get the list of games that have had damage dealt in all rounds
-    :param games:   all data stored in the mongo database
-    :return:        the list of games that have had damage dealt in all rounds
-    """
-    damage_dealt = get_damage_dealt(games=games)
-    min_damage_dealt = damage_dealt.groupby('matchID').min()
-    valid_games = min_damage_dealt[min_damage_dealt != 0].index
-
-    return valid_games
-
-
 def remove_non_highlander(games: pd.DataFrame) -> pd.Index:
     """
     remove all games that weren't playing highlander in any round
@@ -49,36 +36,21 @@ def preprocess(games: pd.DataFrame) -> pd.DataFrame:
     :param games:   all data stored in the mongo database
     :return:        the list of games that should be used for ranking
     """
+
     ranked_games: pd.DataFrame = games[
-        games['ranked'] &
-        games['rebalance'] &
-        ~games['perfectKits'] &
-        ~games['isPreRelease'].replace(np.nan, True)
+        ~games.perfectKits &
+        games.rebalance &
+        (games["kit1"] != "Spectate") &
+        (games.matchTimestamp > "2023-03-01")
     ].copy()
 
     has_even_teams = remove_uneven_teams(games=ranked_games)
-    has_damage = remove_no_damage_rounds(games=ranked_games)
     has_highlander = remove_non_highlander(games=ranked_games)
 
     ranked_games.set_index('matchID', inplace=True)
-    ranked_games = ranked_games.loc[has_even_teams.intersection(has_damage).intersection(has_highlander)]
-    ranked_games = games.copy().set_index('matchID')
+    ranked_games = ranked_games.loc[has_even_teams.intersection(has_highlander)]
 
     recent_names = player_names(games=ranked_games)
     ranked_games['name'] = ranked_games['uid'].replace(recent_names)
 
-    ranked_games.drop(
-        columns=[
-            '_id',
-            'uid',
-            'serverName',
-            'ranked',
-            'rebalance',
-            'perfectKits',
-            'isPreRelease',
-            'version'
-        ],
-        inplace=True
-    )
-
-    return ranked_games
+    return ranked_games.reset_index()

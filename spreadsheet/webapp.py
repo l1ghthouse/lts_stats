@@ -39,10 +39,9 @@ def view_data() -> None:
     """
     @st.cache
     def load_game_data() -> pd.DataFrame:
-        return load_database()
+        return get_game_type(preprocess(load_database()))
 
-    ranked_games = preprocess(load_game_data())
-    ranked_games = get_game_type(ranked_games)
+    ranked_games = load_game_data()
 
     start_date, end_date = st.columns(2)
 

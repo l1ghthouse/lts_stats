@@ -2,7 +2,6 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from typing import List, Tuple
 
-from utilities import convert_uid_index
 import itertools
 
 import warnings
@@ -48,6 +47,7 @@ class RankingSystem:
         :param match: the match that has been played
         :return:
         """
+        match.set_index("round", inplace=True)
 
         for round_played in match.index.unique():
             try:
@@ -56,7 +56,7 @@ class RankingSystem:
                 print('could not process match at time {} round {}'.format(match.matchTimestamp, round_played))
                 print(e)
 
-        match_played = pd.Series(1, index=match['uid'].unique())
+        match_played = pd.Series(1, index=match['name'].unique())
         self.matches_played = self.matches_played.add(match_played, fill_value=0)
 
         self.historical_rankings = pd.concat(
@@ -70,13 +70,13 @@ class RankingSystem:
         :return: the elo changes to make
         """
 
-        winners = game_round[game_round.result == 'Win'].set_index('uid')
-        losers = game_round[game_round.result == 'Loss'].set_index('uid')
+        winners = game_round[game_round.result == 'Win'].set_index('name')
+        losers = game_round[game_round.result == 'Loss'].set_index('name')
 
-        for player in game_round['uid'].unique():
+        for player in game_round['name'].unique():
             self.check_player(player)
 
-        elo_gained = pd.Series(0, index=game_round['uid'].unique())
+        elo_gained = pd.Series(0, index=game_round['name'].unique())
 
         for winner, loser in list(itertools.product(winners.index.values, losers.index.values)):
 
@@ -84,7 +84,7 @@ class RankingSystem:
             prob_loss = self.lr.predict_proba(losers.loc[loser][features].values.reshape(-1, 1).T)[0][0]
 
             win_gain, lose_loss = self.update_elo(
-                winner, loser, prob_win/len(winners.index.values), prob_loss/len(winners.index.values)
+                winner, loser, prob_win, prob_loss
             )
 
             elo_gained[winner] += win_gain
@@ -121,14 +121,14 @@ class RankingSystem:
         """
         top = self.elo[self.matches_played > self.min_matches].nlargest(10)
 
-        return convert_uid_index(top.copy(), self.games)
+        return top.copy()
 
     def get_player_elo(self, player_gt: str) -> float:
         """
         :param player_gt: the player to get elo rating for
         :return: the elo rating of the player
         """
-        player_id = self.games[self.games.name == player_gt].uid.unique()[0]
+        player_id = self.games[self.games.name == player_gt].name.unique()[0]
 
         return self.elo.loc[player_id]
 
@@ -159,7 +159,7 @@ class RankingSystem:
         """
         :param player_gts: the list of players to plot for
         """
-        plot_data = convert_uid_index(self.historical_rankings.copy(), self.games).T
+        plot_data = self.historical_rankings.copy().T
 
         if player_gts is not None:
             plot_data[player_gts].plot(figsize=(20, 10))
