@@ -40,8 +40,7 @@ def preprocess(games: pd.DataFrame) -> pd.DataFrame:
     ranked_games: pd.DataFrame = games[
         ~games.perfectKits &
         games.rebalance &
-        (games["kit1"] != "Spectate") &
-        (games.matchTimestamp > "2023-03-01")
+        (games["kit1"] != "Spectate")
     ].copy()
 
     has_even_teams = remove_uneven_teams(games=ranked_games)
